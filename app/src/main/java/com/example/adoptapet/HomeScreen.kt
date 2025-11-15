@@ -37,7 +37,10 @@ fun HomeScreen(
     onAnimalClick: (Animal) -> Unit,
     favoritesManager: FavoriteManager
 ) {
-    val animalViewModel = remember { AnimalViewModel() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val animalViewModel = remember { 
+        AnimalViewModel(context.applicationContext as android.app.Application)
+    }
     val animals by animalViewModel.animals.collectAsState()
     val isLoading by animalViewModel.isLoading.collectAsState()
     val currentFilter by animalViewModel.currentFilter.collectAsState()

@@ -1,14 +1,13 @@
 package com.example.adoptapet.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.adoptapet.R
+import com.example.adoptapet.database.AnimalDatabase
 import com.example.adoptapet.model.Animal
 import com.example.adoptapet.model.AnimalType
+import com.example.adoptapet.repository.AnimalRepository
 import com.example.adoptapet.service.AnimalApiService
-import com.example.adoptapet.service.DogBreed
-import com.example.adoptapet.service.CatBreed
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +23,8 @@ enum class DisplayLimit(val value: Int?) {
     ALL(null)
 }
 
-class AnimalViewModel : ViewModel() {
+class AnimalViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository: AnimalRepository
     private val _allAnimals = MutableStateFlow<List<Animal>>(emptyList())
     
     private val _animals = MutableStateFlow<List<Animal>>(emptyList())
@@ -39,66 +39,38 @@ class AnimalViewModel : ViewModel() {
     private val _displayLimit = MutableStateFlow(DisplayLimit.ALL)
     val displayLimit: StateFlow<DisplayLimit> = _displayLimit.asStateFlow()
 
-    private val apiService = AnimalApiService.create()
-
     init {
-        loadAnimalsFromApi()
+        val database = AnimalDatabase.getDatabase(application)
+        val apiService = AnimalApiService.create()
+        repository = AnimalRepository(database.animalDao(), apiService)
+        
+        loadAnimalsFromDatabase()
+        refreshAnimalsFromApi()
     }
 
-    fun loadAnimalsFromApi() {
+    private fun loadAnimalsFromDatabase() {
+        viewModelScope.launch {
+            repository.allAnimals.collect { animals ->
+                _allAnimals.value = animals.shuffled()
+                applyFilter()
+            }
+        }
+    }
+
+    private fun refreshAnimalsFromApi() {
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // Récupère les chiens et chats en parallèle
-                val dogsDeferred = async { apiService.getDogs() }
-                val catsDeferred = async { apiService.getCats() }
-
-                val dogs = dogsDeferred.await()
-                val cats = catsDeferred.await()
-
-                // Convertit les chiens en animaux (filtre ceux sans image)
-                val dogAnimals = dogs
-                    .filter { it.reference_image_id != null }
-                    .mapIndexed { index, dog ->
-                        Animal(
-                            id = index + 1,
-                            name = dog.name ?: "Unknown",
-                            description = buildDogDescription(dog),
-                            imageRes = R.drawable.dog_vector,
-                            imageUrl = "https://cdn2.thedogapi.com/images/${dog.reference_image_id}.jpg",
-                            type = AnimalType.DOG
-                        )
-                    }
-
-                // Convertit les chats en animaux (filtre ceux sans image)
-                val catAnimals = cats
-                    .filter { it.reference_image_id != null }
-                    .mapIndexed { index, cat ->
-                        Animal(
-                            id = index + 1001, // IDs différents pour éviter les conflits
-                            name = cat.name ?: "Unknown",
-                            description = buildCatDescription(cat),
-                            imageRes = R.drawable.cat_vector,
-                            imageUrl = "https://cdn2.thecatapi.com/images/${cat.reference_image_id}.jpg",
-                            type = AnimalType.CAT
-                        )
-                    }
-
-                // Combine et mélange les animaux
-                val allAnimals = (dogAnimals + catAnimals).toList().shuffled()
-                _allAnimals.value = allAnimals
-                applyFilter()
-
+                repository.refreshAnimals()
             } catch (e: Exception) {
                 e.printStackTrace()
-                // En cas d'erreur, utiliser des données de secours
-                _allAnimals.value = getFallbackAnimals()
-                applyFilter()
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
+
 
     fun setFilter(filter: AnimalFilter) {
         _currentFilter.value = filter
@@ -125,55 +97,5 @@ class AnimalViewModel : ViewModel() {
         }
     }
 
-    private fun buildDogDescription(dog: DogBreed): String {
-        val description = StringBuilder()
-        description.append("Race de chien")
 
-        dog.bred_for?.let {
-            description.append(" élevé pour : $it")
-        }
-
-        dog.temperament?.let {
-            description.append(". Tempérament : $it")
-        }
-
-        description.append(". Espérance de vie : ${dog.life_span}")
-
-        return description.toString()
-    }
-
-    private fun buildCatDescription(cat: CatBreed): String {
-        return "Race de chat. ${cat.description}. " +
-                "Tempérament : ${cat.temperament}. " +
-                "Origine : ${cat.origin}. " +
-                "Espérance de vie : ${cat.life_span}"
-    }
-
-    private fun getDogImageResource(imageId: String?): Int {
-        // Utilise des images locales basées sur le type de chien
-        return when {
-            imageId?.contains("hound") == true -> R.drawable.dog_vector
-            imageId?.contains("terrier") == true -> R.drawable.dog_vector
-            else -> R.drawable.dog_vector
-        }
-    }
-
-    private fun getCatImageResource(imageId: String?): Int {
-        // Utilise des images locales pour les chats
-        return R.drawable.cat_vector
-    }
-
-    private fun getFallbackAnimals(): List<Animal> {
-        // Données de secours si l'API échoue
-        return listOf(
-            Animal(1, "Labrador Retriever", "Chien amical et énergique, parfait pour les familles", R.drawable.dog_vector, type = AnimalType.DOG),
-            Animal(2, "Golden Retriever", "Chien doux et intelligent, excellent compagnon", R.drawable.dog_vector, type = AnimalType.DOG),
-            Animal(3, "Siamois", "Chat élégant et vocal, très affectueux", R.drawable.cat_vector, type = AnimalType.CAT),
-            Animal(4, "Persan", "Chat calme au pelage luxuriant, parfait pour l'intérieur", R.drawable.cat_vector, type = AnimalType.CAT),
-            Animal(5, "Berger Allemand", "Chien loyal et intelligent, excellent gardien", R.drawable.dog_vector, type = AnimalType.DOG),
-            Animal(6, "Beagle", "Chien curieux et amical, grand renifleur", R.drawable.dog_vector, type = AnimalType.DOG),
-            Animal(7, "Main Coon", "Chat géant et doux, au pelage impressionnant", R.drawable.cat_vector, type = AnimalType.CAT),
-            Animal(8, "Bengal", "Chat actif au pelage léopard, très joueur", R.drawable.cat_vector, type = AnimalType.CAT)
-        )
-    }
 }

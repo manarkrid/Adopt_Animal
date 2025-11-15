@@ -1,6 +1,7 @@
 package com.example.adoptapet
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,18 +9,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
 fun AProposScreen(onBack: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,10 +83,25 @@ fun AProposScreen(onBack: () -> Unit) {
             )
 
             Text(
-                text = "Version 1.0",
+                text = buildAnnotatedString {
+                    append("Documentaire Animalier sur ")
+                    withStyle(
+                        style = SpanStyle(
+                            color = Color(0xFF8B2BE2),
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    ) {
+                        append("YouTube")
+                    }
+                },
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                modifier = Modifier
+                    .clickable {
+                        uriHandler.openUri("https://www.youtube.com/watch?v=k2o6XjDsvpA")
+                    }
             )
+
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -113,7 +136,7 @@ fun AProposScreen(onBack: () -> Unit) {
 
             // Fonctionnalités
             InfoCard(
-                icon = Icons.Default.Pets, // This might work if you have the extended dependency
+                icon = Icons.Default.FavoriteBorder,
                 title = "Découvrez",
                 description = "Parcourez des centaines de chiens et chats à adopter"
             )
