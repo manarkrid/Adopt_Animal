@@ -26,9 +26,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AdoptaPetApp() {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
-    val favoritesManager = remember { FavoriteManager() }
-    val adoptionManager = remember { AdoptionManager() }
+    val favoritesManager = remember { FavoriteManager(context) }
+    val adoptionManager = remember { AdoptionManager(context) }
 
     MaterialTheme {
         when (currentScreen) {

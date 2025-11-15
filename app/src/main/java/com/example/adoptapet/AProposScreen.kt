@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -27,7 +26,22 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun AProposScreen(onBack: () -> Unit) {
-    val uriHandler = LocalUriHandler.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    fun openInBrowser(url: String) {
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+        // Force l'ouverture dans le navigateur
+        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.setPackage("com.android.chrome") // Chrome
+        try {
+            context.startActivity(intent)
+        } catch (e: android.content.ActivityNotFoundException) {
+            // Si Chrome n'est pas installé, essayer avec le navigateur par défaut
+            intent.setPackage(null)
+            context.startActivity(intent)
+        }
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -98,7 +112,7 @@ fun AProposScreen(onBack: () -> Unit) {
                 fontSize = 16.sp,
                 modifier = Modifier
                     .clickable {
-                        uriHandler.openUri("https://www.youtube.com/watch?v=k2o6XjDsvpA")
+                        openInBrowser("https://www.youtube.com/watch?v=k2o6XjDsvpA&feature=emb_title")
                     }
             )
 
