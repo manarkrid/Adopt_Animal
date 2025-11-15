@@ -48,8 +48,16 @@ fun AdoptaPetApp() {
                     currentScreen = Screen.AnimalDetail(animal)
                 }
             )
-            is Screen.Favoris -> Text("Favoris - À implémenter")
-            is Screen.APropos -> Text("À propos - À implémenter")
+            is Screen.Favoris -> FavorisScreen(
+                onBack = { currentScreen = Screen.Home },
+                onAnimalClick = { animal ->
+                    currentScreen = Screen.AnimalDetail(animal)
+                },
+                favoritesManager = favoritesManager
+            )
+            is Screen.APropos -> AProposScreen(
+                onBack = { currentScreen = Screen.Home }
+            )
             is Screen.AnimalDetail -> {
                 val animal = (currentScreen as Screen.AnimalDetail).animal
                 AnimalDetailScreen(
