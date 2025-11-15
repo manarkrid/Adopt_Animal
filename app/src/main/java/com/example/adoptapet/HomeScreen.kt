@@ -4,10 +4,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,22 +23,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
-
-data class Animal(val name: String, val description: String, val imageRes: Int)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.adoptapet.model.Animal
+import com.example.adoptapet.viewmodel.AnimalViewModel
 
 @Composable
-fun HomeScreen() {
-    val animals = listOf(
-        Animal("Chat mignon", "Un chat adorable à adopter", R.drawable.cat_image),
-        Animal("Chien joueur", "Un chien joueur et affectueux", R.drawable.dog_image),
-        Animal("Lapin doux", "Un petit lapin très câlin", R.drawable.rabbit_image),
-        Animal("Cheval brown", "Un cheval brown adorable", R.drawable.cheval_image)
-    )
+fun HomeScreen(
+    onAdopterClick: () -> Unit,
+    onFavorisClick: () -> Unit,
+    onAProposClick: () -> Unit,
+    onAnimalClick: (Animal) -> Unit,
+    favoritesManager: FavoriteManager
+) {
+    val animalViewModel: AnimalViewModel = viewModel()
+    val animals by animalViewModel.animals.collectAsState()
+    val isLoading by animalViewModel.isLoading.collectAsState()
 
     var menuExpanded by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.fillMaxSize()) {
-        // Colonne pour le bouton hamburger
+        // Menu hamburger
         Column(
             modifier = Modifier
                 .width(60.dp)
@@ -60,9 +68,12 @@ fun HomeScreen() {
             }
         }
 
-        // Menu flottant avec Popup
+        // Menu flottant
         if (menuExpanded) {
-            Popup(alignment = Alignment.TopStart) {
+            Popup(
+                alignment = Alignment.TopStart,
+                onDismissRequest = { menuExpanded = false }
+            ) {
                 Column(
                     modifier = Modifier
                         .background(
@@ -71,42 +82,66 @@ fun HomeScreen() {
                         )
                         .padding(8.dp)
                 ) {
-                    FloatingMenuItem("Accueil") { menuExpanded = false }
-                    FloatingMenuItem("Chats") { menuExpanded = false }
-                    FloatingMenuItem("Chiens") { menuExpanded = false }
-                    FloatingMenuItem("À propos") { menuExpanded = false }
+                    FloatingMenuItem("Adopter") { menuExpanded = false; onAdopterClick() }
+                    FloatingMenuItem("Favoris") { menuExpanded = false; onFavorisClick() }
+                    FloatingMenuItem("À propos") { menuExpanded = false; onAProposClick() }
                 }
             }
         }
 
-        // Contenu principal centré et scrollable
+        // Contenu principal avec grille 2 colonnes
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally, // centre les items
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                item {
-                    Text(
-                        text = "Bienvenue dans AdoptaPet !",
-                        fontSize = 28.sp,
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier
-                            .padding(bottom = 20.dp)
-                             // centre le texte du header
-                    )
+            if (isLoading) {
+                // Indicateur de chargement
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Chargement des animaux...")
                 }
-                items(animals) { animal ->
-                    AnimalCard(animal)
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    item(span = { GridItemSpan(2) }) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Bienvenue dans AdoptaPet !",
+                                fontSize = 28.sp,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                text = "Découvrez nos ${animals.size} animaux à adopter 🐾",
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 20.dp)
+                            )
+                        }
+                    }
+
+                    items(animals) { animal ->
+                        AnimalCardMini(
+                            animal = animal,
+                            onClick = { onAnimalClick(animal) },
+                            favoritesManager = favoritesManager
+                        )
+                    }
                 }
             }
-
         }
     }
 }
@@ -119,60 +154,91 @@ fun FloatingMenuItem(label: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 8.dp, horizontal = 12.dp)
+            .padding(vertical = 12.dp, horizontal = 16.dp)
     )
 }
 
 @Composable
-fun AnimalCard(animal: Animal) {
+fun AnimalCardMini(
+    animal: Animal,
+    onClick: () -> Unit,
+    favoritesManager: FavoriteManager
+) {
+    val isFavorite by remember { derivedStateOf {
+        favoritesManager.isFavorite(animal.id)
+    }}
+
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .fillMaxWidth(0.85f) // Utilise 85% de la largeur disponible pour un bon centrage
-            .height(220.dp),
+            .fillMaxWidth()
+            .height(180.dp)
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.LightGray) // fond uniforme pour toutes les cartes
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = painterResource(id = animal.imageRes),
                 contentDescription = animal.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
+
+            // Bouton favori
+            IconButton(
+                onClick = { favoritesManager.toggleFavorite(animal) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(36.dp)
+                    .background(
+                        Color.White.copy(alpha = 0.8f),
+                        RoundedCornerShape(8.dp)
+                    )
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = if (isFavorite) "Retirer des favoris" else "Ajouter aux favoris",
+                    tint = if (isFavorite) Color.Red else Color.Gray
+                )
+            }
+
+            // Overlay texte en bas
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp)
+                    .height(60.dp)
                     .align(Alignment.BottomStart)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
-                    .padding(8.dp)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f)
+                            )
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
             ) {
-                Column {
-                    Text(
-                        text = animal.name,
-                        fontSize = 20.sp,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = animal.description,
-                        fontSize = 14.sp,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                Text(
+                    text = animal.name,
+                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+                Text(
+                    text = animal.description.take(25) + "...",
+                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                    maxLines = 1
+                )
             }
         }
-    }
-}
-
-// Fonction principale pour l'application
-@Composable
-fun AdoptaPetApp() {
-    MaterialTheme {
-        HomeScreen()
     }
 }
