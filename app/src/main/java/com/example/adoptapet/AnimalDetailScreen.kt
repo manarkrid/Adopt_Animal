@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.adoptapet.model.Animal
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,14 +68,27 @@ fun AnimalDetailScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // Image de l'animal
-            Image(
-                painter = painterResource(id = animal.imageRes),
-                contentDescription = animal.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            )
+            if (animal.imageUrl != null) {
+                AsyncImage(
+                    model = animal.imageUrl,
+                    contentDescription = animal.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    placeholder = painterResource(id = animal.imageRes),
+                    error = painterResource(id = animal.imageRes)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = animal.imageRes),
+                    contentDescription = animal.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                )
+            }
 
             // Contenu détaillé
             Column(
