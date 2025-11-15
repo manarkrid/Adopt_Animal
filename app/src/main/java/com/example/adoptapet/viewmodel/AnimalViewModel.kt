@@ -56,33 +56,33 @@ class AnimalViewModel : ViewModel() {
                 val dogs = dogsDeferred.await()
                 val cats = catsDeferred.await()
 
-                // Convertit les chiens en animaux
-                val dogAnimals = dogs.mapIndexed { index, dog ->
-                    Animal(
-                        id = index + 1,
-                        name = dog.name ?: "Unknown",
-                        description = buildDogDescription(dog),
-                        imageRes = getDogImageResource(dog.reference_image_id),
-                        imageUrl = if (dog.reference_image_id != null)
-                            "https://cdn2.thedogapi.com/images/${dog.reference_image_id}.jpg"
-                        else null,
-                        type = AnimalType.DOG
-                    )
-                }
+                // Convertit les chiens en animaux (filtre ceux sans image)
+                val dogAnimals = dogs
+                    .filter { it.reference_image_id != null }
+                    .mapIndexed { index, dog ->
+                        Animal(
+                            id = index + 1,
+                            name = dog.name ?: "Unknown",
+                            description = buildDogDescription(dog),
+                            imageRes = R.drawable.dog_vector,
+                            imageUrl = "https://cdn2.thedogapi.com/images/${dog.reference_image_id}.jpg",
+                            type = AnimalType.DOG
+                        )
+                    }
 
-                // Convertit les chats en animaux
-                val catAnimals = cats.mapIndexed { index, cat ->
-                    Animal(
-                        id = index + 1001, // IDs différents pour éviter les conflits
-                        name = cat.name ?: "Unknown",
-                        description = buildCatDescription(cat),
-                        imageRes = getCatImageResource(cat.reference_image_id),
-                        imageUrl = if (cat.reference_image_id != null)
-                            "https://cdn2.thecatapi.com/images/${cat.reference_image_id}.jpg"
-                        else null,
-                        type = AnimalType.CAT
-                    )
-                }
+                // Convertit les chats en animaux (filtre ceux sans image)
+                val catAnimals = cats
+                    .filter { it.reference_image_id != null }
+                    .mapIndexed { index, cat ->
+                        Animal(
+                            id = index + 1001, // IDs différents pour éviter les conflits
+                            name = cat.name ?: "Unknown",
+                            description = buildCatDescription(cat),
+                            imageRes = R.drawable.cat_vector,
+                            imageUrl = "https://cdn2.thecatapi.com/images/${cat.reference_image_id}.jpg",
+                            type = AnimalType.CAT
+                        )
+                    }
 
                 // Combine et mélange les animaux
                 val allAnimals = (dogAnimals + catAnimals).toList().shuffled()
