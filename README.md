@@ -44,6 +44,19 @@ Page Home :
 
 ![home](https://github.com/user-attachments/assets/758f8e9a-78d9-4d8e-8332-f59cf32aa48e)
 
+
+Page Home Par filtre de seulement chats(tous/par6/par 12):
+
+
+![filtrage chats](https://github.com/user-attachments/assets/f9c62a4b-2f14-4b0e-827c-07e6d7e706f2)
+
+
+Page Home Par filtre de seulement chienss(tous/par6/par 12):
+
+
+![filtragechients](https://github.com/user-attachments/assets/052601d6-2f00-43c2-8741-c5c4a8ddc301)
+
+
 Page Home Par filtre de seulement 12 animaux :
 
 ![filtrepar12](https://github.com/user-attachments/assets/af627bed-7877-4983-83c4-8095bc4e59e6)
@@ -79,6 +92,7 @@ Pagr A propos avec lien Youtube:
 
 Faites la différence, adoptez ! 🐕🐈
 ⭐ Donnez une étoile si le projet vous plaît !
+
 
 
 
