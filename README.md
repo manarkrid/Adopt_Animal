@@ -36,21 +36,39 @@
 📱 App Screenshots
 
 
-![description apres adoptation](https://github.com/user-attachments/assets/5eb14a82-e8a7-477c-8ab8-3ea55ecf5256)
-![description](https://github.com/user-attachments/assets/cf79deb2-b98c-4d74-a7e1-1fe1fdb1dffc)
 
-![filtrepar6](https://github.com/user-attachments/assets/117afd2b-d28f-4439-aaa5-66c77bd83407)
 
-![filtrepar12](https://github.com/user-attachments/assets/da980d50-44ff-4a6a-9ed9-235d6df2d0f9)
+Page Home :
+![home](https://github.com/user-attachments/assets/758f8e9a-78d9-4d8e-8332-f59cf32aa48e)
 
-![home](https://github.com/user-attachments/assets/a8f61847-082f-4198-b60d-a67805f0d9bf)
+Page Home Par filtre de seulement 12 animaux :
+![filtrepar12](https://github.com/user-attachments/assets/af627bed-7877-4983-83c4-8095bc4e59e6)
 
-![pafeFavoris](https://github.com/user-attachments/assets/5d29d172-df94-424c-ab25-d91adcce0c53)
 
-![pageAdoption](https://github.com/user-attachments/assets/04bcc552-1c85-4488-9566-ea3e9d1f68bb)
+Page Home Par filtre de seulement 6 animaux :
+![filtrepar6](https://github.com/user-attachments/assets/3b049d91-e23f-49a9-9f06-4ad3bf4a92d5)
 
-![pageapropos](https://github.com/user-attachments/assets/cbd69513-644b-460d-90b3-8330557e03df)
+Page d'Adoption:
+
+![pageAdoption](https://github.com/user-attachments/assets/1b29fa13-ff28-43a7-a307-cf0d21d73192)
+
+
+description apres adoptation:
+![description apres adoptation](https://github.com/user-attachments/assets/53c88dbd-81b7-4509-834b-a68a1865b5fb)
+
+
+description sans adoptation:
+![description](https://github.com/user-attachments/assets/07fd0be5-2a9f-4494-98d5-0803e06b3452)
+
+Page Favoris:
+![pafeFavoris](https://github.com/user-attachments/assets/98915245-5794-46ed-9393-1ed6b7f4dd50)
+
+
+Pagr A propos avec lien Youtube:
+![pageapropos](https://github.com/user-attachments/assets/2762560c-d31c-462d-9e95-9e99fde5faa1)
+
 
 Faites la différence, adoptez ! 🐕🐈
 ⭐ Donnez une étoile si le projet vous plaît !
+
 
